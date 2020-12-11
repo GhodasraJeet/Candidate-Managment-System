@@ -21,7 +21,7 @@
 
         <div class="col-lg-3 col-6">
           <!-- small box -->
-          <a href="{{ route('admincandidate.index') }}">
+          <a href="{{ route('candidates.index') }}">
           <div class="small-box bg-info">
             <div class="inner">
               <h3>{{$interview}}</h3>
@@ -66,11 +66,24 @@
           </div>
           </a>
         </div>
-        <!-- ./col -->
+        <div class="col-lg-3 col-6">
+            <!-- small box -->
+            <a href="{{route('plan.index')}}">
+              <div class="small-box bg-danger">
+              <div class="inner">
+                <h3>{{$plans}}</h3>
 
-        <!-- ./col -->
+                <p>Plans</p>
+              </div>
+              <div class="icon">
+                <i class="ion ion-briefcase"></i>
+              </div>
+            </div>
+            </a>
+          </div>
       </div>
       <h2 class="my-3">Recent Candidates</h2>
+      <div class="table-responsive">
       <table class="table table-striped">
         <thead>
           <tr>
@@ -92,7 +105,7 @@
                 <td>{{$item->phone}}</td>
                 <td>{{$item->getHrDetails->name}}</td>
                 <td>{{$item->created_at}}</td>
-                <td><a href="{{ route('admincandidate.show',$item->id) }}"><i class="fa fa-eye"></i></a></td>
+                <td><a href="{{ route('candidates.show',$item->id) }}"><i class="fa fa-eye text-active"></i></a></td>
               </tr>
 
             @empty
@@ -104,7 +117,7 @@
 
         </tbody>
       </table>
-
+      </div>
     </div><!-- /.container-fluid -->
   </section>
 @endsection

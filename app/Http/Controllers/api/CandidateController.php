@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\api;
 
+use Exception;
 use App\Interview;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\api\BaseController;
-use Exception;
 
 class CandidateController extends BaseController
 {
@@ -18,11 +18,11 @@ class CandidateController extends BaseController
      */
     public function index()
     {
-        $interview=Interview::with('getHrDetails','getCategory')->get();
+        $interview=Interview::with('getHrDetails','getCategory')->paginate(10);
         if (is_null($interview)) {
             return $this->sendError('candidate not found.');
         }
-        return $this->sendResponse($interview->toArray(), 'Candidate retrieved successfully.');
+        return $this->sendResponse($interview, 'Candidate retrieved successfully.');
     }
 
     /**
@@ -35,7 +35,23 @@ class CandidateController extends BaseController
     {
         try
         {
-            $interview = Interview::create($request->all());
+            $input = $request->all();
+            $validator = Validator::make($input, [
+                'name'=>'required',
+                'email' => 'required|unique:interview,email',
+                'phone'=>'required|min:10',
+                'other_phone'=>'required|min:10',
+                'category_id'=>'required',
+                'experience'=>'required|numeric|max:3',
+                'currnet_salary'=>'required|number'
+            ],
+            [
+                "email.unique"=>"$request->name is alerady existed"
+            ]);
+            if($validator->fails()){
+                return $this->sendError('Validation Error.', $validator->errors());
+            }
+            $interview = Interview::create($input);
         }
         catch(Exception $exception)
         {

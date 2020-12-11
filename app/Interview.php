@@ -22,8 +22,9 @@ class Interview extends Model
     {
         return $this->belongsTo(User::class,'hr_id')->withTrashed();
     }
+    // Get The proper date
 
-    public function getcreatedatAttribute($value)
+    public function getcreatedAtAttribute($value)
     {
         $date=date_create($value);
         return date_format($date,"d M Y");

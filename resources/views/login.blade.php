@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -10,20 +8,53 @@
   <link rel="stylesheet" href="{{ asset('css/css/all.min.css') }}">
   <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
   <link rel="stylesheet" href="{{ asset('css/adminlte.min.css')}}">
+  <link rel="stylesheet" href="{{ asset('css/style.css') }}">
   <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+  <style>
+    input,.login-card-body .input-group .input-group-text, .register-card-body .input-group .input-group-text
+    {
+        border-color: blue !important;
+    }
+    .input-group .input-group-append .input-group-text
+    {
+        color: blue;
+    }
+  </style>
 </head>
 <body class="hold-transition login-page">
-  @if ($message = Session::get('warning'))
-  <div class="alert alert-danger alert-left-bordered border-danger alert-dismissible d-flex align-items-center p-md-4 mb-2 fade show" role="alert">
-    <p class="mb-0">
-      <strong>Warning</strong> {{ $message }}
-    </p>
-    <button type="button" class="close" aria-label="Close" data-dismiss="alert">
-      <i class="gd-close icon-text icon-text-xs" aria-hidden="true"></i>
-    </button>
-  </div>
 
-@endif
+    {{-- Display warning alert on delete --}}
+
+    @if ($message = Session::get('warning'))
+        @component('alert')
+            @slot('class')
+                danger
+            @endslot
+            @slot('tag')
+                Danger
+            @endslot
+            @slot('message')
+            {{$message}}
+            @endslot
+        @endcomponent
+    @endif
+
+    {{-- Display warning alert on unexpected error. --}}
+
+    @if (session('error'))
+        @component('alert')
+            @slot('class')
+                danger
+            @endslot
+            @slot('tag')
+                Danger
+            @endslot
+            @slot('message')
+            {{ session('error') }}
+            @endslot
+        @endcomponent
+    @endif
+
 <div class="login-box">
   <div class="login-logo">
     <b>Candidate Managment System</b>
@@ -34,7 +65,7 @@
       <form action="{{ route('submitLogin') }}" method="post">
         @csrf
         <div class="input-group mb-3">
-          <input type="email" name="email" value="{{ old('email') }}" class="form-control" placeholder="Email">
+          <input type="email" name="email" value="{{ old('email') }}" class="form-control" placeholder="Email" autofocus>
           <div class="input-group-append">
             <div class="input-group-text">
               <span class="fas fa-envelope"></span>
@@ -43,7 +74,7 @@
         </div>
         @if ($errors->has('email'))
         <span role="alert">
-            <strong class="text-danger">{{ $errors->first('email') }}</strong>
+            <p class="text-danger">{{ $errors->first('email') }}</p>
         </span>
     @endif
         <div class="input-group mb-3 mt-3">
@@ -56,7 +87,7 @@
         </div>
         @if ($errors->has('password'))
           <span role="alert">
-              <strong class="text-danger">{{ $errors->first('password') }}</strong>
+              <p class="text-danger">{{ $errors->first('password') }}</p>
           </span>
       @endif
         <div class="row mt-3">
@@ -64,16 +95,11 @@
         </div>
       </form>
     </div>
-    <!-- /.login-card-body -->
   </div>
 </div>
-<!-- /.login-box -->
 
-<!-- jQuery -->
 <script src="{{ asset('js/jquery.min.js') }}"></script>
-<!-- Bootstrap 4 -->
 <script src="{{ asset('js/bootstrap.bundle.min.js')}}"></script>
-<!-- AdminLTE App -->
 <script src="{{ asset('js/adminlte.min.js')}}"></script>
 
 </body>

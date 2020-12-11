@@ -6,8 +6,8 @@ use Exception;
 use App\Category;
 use App\Interview;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Yajra\DataTables\Facades\DataTables;
+use App\DataTables\CategoryDataTable;
+use App\Exceptions\UserNotFoundException;
 
 class HrCategoryController extends Controller
 {
@@ -16,34 +16,9 @@ class HrCategoryController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index(CategoryDataTable $datatable)
     {
-        // $params=$request->params;
-        if($request->ajax())
-        {
-            if(!empty($request->from_date))
-            {
-                $query=Category::whereBetween('created_at', array($request->from_date, $request->to_date))->get();
-            }
-            else
-            {
-                $query=Category::latest()->get();
-            }
-
-            return datatables()->of($query)->addIndexColumn()
-            ->addColumn('action', function($row){
-
-                $btn = '<div class="d-flex justify-content-around align-items-center"><a href="'.route('hrcategory.show',$row->id).'" class="edit mr-3"><i class="fa fa-eye"></i></a>';
-                $btn = $btn.'<button class="btn deleteCategory" data-id="'.$row->id.'"><i class="fa fa-trash"></i></button>';
-                $btn = $btn.'<a href="'.route('hrcategory.edit',$row->id).'" class="edit mr-3"><i class="fa fa-edit"></i></a></div>';
-
-                return $btn;
-            })->rawColumns(['action'])->make(true);
-        }
-
-        return view('hr.category_details');
-        // $categoryDetails=Category::get();
-        // return view('hr.category_details',compact('categoryDetails'));
+        return $datatable->render('hr.category_details');
     }
 
     /**
@@ -74,7 +49,7 @@ class HrCategoryController extends Controller
         $category->name=$request->categoryname;
         if($category->save())
         {
-            return redirect()->route('hrcategory.index')->with('success','Category added Successfully...!');
+            return redirect()->route('category.index')->with('success','Category added Successfully...!');
         }
     }
 
@@ -131,7 +106,7 @@ class HrCategoryController extends Controller
             ->update(['name' => $request->categoryname]);
             if($result)
             {
-                return redirect()->route('hrcategory.index')->with('success','Category Updated successfully...!');
+                return redirect()->route('category.index')->with('success','Category Updated successfully...!');
             }
         }
         catch(Exception $exception)
@@ -166,8 +141,7 @@ class HrCategoryController extends Controller
         }
         catch(Exception $ex)
         {
-            throw new \App\Exceptions\UserNotFoundException('Category not found');
+            throw new UserNotFoundException('Category not found');
         }
-        // return redirect()->route('hrcategory.index')->with('warning','Category Deleted suceesfully....');
     }
 }

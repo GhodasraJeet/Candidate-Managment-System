@@ -8,7 +8,7 @@
     <div class="clearfix"></div>
     <div class="row mb-5">
         <div class="col-md-12">
-        <form action="{{ route('hrinterview.store') }}" method="post">
+        <form action="{{ route('interview.store') }}" method="post">
             @csrf
             <div class="row mb-2">
                 <div class="col-md-4">
@@ -72,7 +72,7 @@
                                     <option value="{{ $category->id }}">{{ $category->name }}</option>
                                 @endif
                             @empty
-                                <option>No Category Found</option>
+
                             @endforelse
                         </select>
                         @if($errors->has('candidate_category'))

@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use Exception;
 use App\Category;
-use App\Interview;
 use Illuminate\Http\Request;
+use Ixudra\Curl\Facades\Curl;
+use App\DataTables\CategoryDataTable;
+use App\Exceptions\UserNotFoundException;
 
 class AdminCategoryController extends Controller
 {
@@ -16,28 +18,8 @@ class AdminCategoryController extends Controller
      */
     public function index(Request $request)
     {
-        if($request->ajax())
-        {
-            if(!empty($request->from_date))
-            {
-                $query = Category::whereBetween('created_at', array($request->from_date, $request->to_date))->get();
-            }
-            else
-            {
-                $query=Category::get();
-            }
-            return datatables()->of($query)->addIndexColumn()
-            ->addColumn('action', function($row){
 
-                $btn = '<div class="d-flex justify-content-around align-items-center"><a href="'.route('admincategory.show',$row->id).'" class="edit mr-3"><i class="fa fa-eye"></i></a>';
-                $btn = $btn.'<button class="btn deleteCategory" data-id="'.$row->id.'"><i class="fa fa-trash"></i></button>';
-                $btn = $btn.'<a href="'.route('admincategory.edit',$row->id).'" class="edit mr-3"><i class="fa fa-edit"></i></a></div>';
-
-                return $btn;
-            })->rawColumns(['action'])
-            ->make(true);
-        }
-
+        // return $datatable->render('admin.category.category_details');
         return view('admin.category.category_details');
     }
 
@@ -46,9 +28,52 @@ class AdminCategoryController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
-        return view('admin.category.create_category');
+        $user=$request->session()->get('email');
+        $token = "Authorization: Bearer ".$user->token->token;
+        if($request->ajax())
+        {
+            $page=$request->page;
+            $category = Curl::to('http://localhost/candidate/public/api/category?page=$page')
+            ->withBearer($user->token->token)
+            ->asJson()
+            ->get();
+
+            $current_page=$category->data->current_page;
+            $prev_page=$category->data->prev_page_url;
+            $last_page=$category->data->last_page;
+            $next_page=$category->data->next_page_url;
+            $per_page=$category->data->per_page;
+            $total=$category->data->total;
+
+            $data['data']=$category->data->data;
+            $data['current_page']=$current_page;
+            $data['next_page']=$next_page;
+            $data['last_page']=$last_page;
+            $data['per_page']=$per_page;
+            $data['prev_page']=$prev_page;
+            $data['total']=$total;
+            return response()->json($data,200);
+        }
+        else
+        {
+            $category = Curl::to('http://localhost/candidate/public/api/category')
+            ->withBearer($user->token->token)
+            ->asJson()
+            ->get();
+
+            $current_page=$category->data->current_page;
+            $first_page=$category->data->first_page_url;
+            $last_page=$category->data->last_page;
+            $next_page=$category->data->next_page_url;
+
+            $data['data']=$category->data->data;
+            $data['current_page']=$current_page;
+            $data['next_page']=$next_page;
+            $data['last_page']=$last_page;
+            return response()->json($data,200);
+        }
     }
 
     /**
@@ -59,18 +84,16 @@ class AdminCategoryController extends Controller
      */
     public function store(Request $request)
     {
-        $this->validate(
-            $request,
-            [
-                "categoryname" => "required|string|unique:category,name",
-            ]
-        );
-        $category=new Category;
-        $category->name=$request->categoryname;
-        if($category->save())
-        {
-            return redirect()->route('admincategory.index')->with('success','Category added Successfully...!');
-        }
+        $user=$request->session()->get('email');
+        $token = "Authorization: Bearer ".$user->token->token;
+        $data=[
+            'name'=>$request->category
+        ];
+        $category = Curl::to('http://localhost/candidate/public/api/category')
+        ->withBearer($user->token->token)
+        ->withData($data)
+        ->post();
+        return response()->json($category,200);
     }
 
     /**
@@ -79,17 +102,15 @@ class AdminCategoryController extends Controller
      * @param  \App\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request)
     {
-        try
-        {
-            $categoryfulldetails=Category::findorfail($id);
-        }
-        catch(Exception $exception)
-        {
-            throw new \App\Exceptions\UserNotFoundException('Category not found');
-        }
-        return view('admin.category.show_category',compact('categoryfulldetails'));
+        $user=$request->session()->get('email');
+        $token = "Authorization: Bearer ".$user->token->token;
+        $category_id=$request->categoryid;
+        $category = Curl::to('http://localhost/candidate/public/api/category/'.$category_id)
+            ->withBearer($user->token->token)
+            ->get();
+        return response()->json($category,200);
     }
 
     /**
@@ -106,7 +127,7 @@ class AdminCategoryController extends Controller
         }
         catch(Exception $exception)
         {
-            throw new \App\Exceptions\UserNotFoundException('Category not found');
+            throw new UserNotFoundException('Category not found');
         }
         return view('admin.category.edit_category',compact('categoryfulldetails'));
     }
@@ -120,19 +141,22 @@ class AdminCategoryController extends Controller
      */
     public function update(Request $request, $id)
     {
-        try
-        {
-            $result=Category::find($id)
-            ->update(['name' => $request->categoryname]);
-            if($result)
-            {
-                return redirect()->route('admincategory.index')->with('success','Category Updated successfully...!');
-            }
-        }
-        catch(Exception $exception)
-        {
-            throw new \App\Exceptions\UserNotFoundException('Category not found');
-        }
+        $user=$request->session()->get('email');
+        $token = "Authorization: Bearer ".$user->token->token;
+        $data=[
+            'name'=>$request->category
+        ];
+        $response=json_encode($data);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "http://localhost/candidate/public/api/category/$request->id");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $token ,'Accept: application/json'));
+        // curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json','Content-Length: ' . strlen($response)));
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $response);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $output = curl_exec($ch);
+        curl_close($ch);
+        return response()->json($output,200);
     }
 
     /**
@@ -141,27 +165,17 @@ class AdminCategoryController extends Controller
      * @param  \App\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        try
-        {
-            $result=Interview::where('category_id',$id)->count();
-            if($result>0)
-            {
-                $msg['msg']="Not Delete Beacuse candidate is exist";
-                $msg['status']="false";
-                return json_encode($msg);
-            }
-            else{
-                Category::findorfail($id)->delete();
-                $msg['msg']="Category Deleted";
-                $msg['status']="true";
-                return json_encode($msg);
-            }
-        }
-        catch(Exception $ex)
-        {
-            throw new \App\Exceptions\UserNotFoundException('Category not found');
-        }
+        $user=$request->session()->get('email');
+        $token = "Authorization: Bearer ".$user->token->token;
+        $category_id=$request->categoryid;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "http://localhost/candidate/public/api/category/$category_id");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $token ,'Accept: application/json'));
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        $output = curl_exec($ch);
+        curl_close($ch);
     }
 }

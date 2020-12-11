@@ -1,18 +1,17 @@
 <?php
 
 namespace App;
-
+use Laravel\Cashier\Billable;
+use Laravel\Passport\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use Notifiable;
+    use HasApiTokens,Notifiable,Billable;
     use SoftDeletes;
-    use HasApiTokens;
     /**
      * The attributes that are mass assignable.
      *
@@ -40,15 +39,23 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    public function getcreatedatAttribute($value)
+    // Get The proper date
+
+    public function getcreatedAtAttribute($value)
     {
         $date=date_create($value);
         return date_format($date,"d M Y");
     }
 
     //  Get The Candidate of HR selected
+
     public function getCandidate()
     {
         return $this->hasMany(Interview::class,'hr_id');
+    }
+
+    public function setPasswordAttribute($password)
+    {
+        $this->attributes['password'] = bcrypt($password);
     }
 }

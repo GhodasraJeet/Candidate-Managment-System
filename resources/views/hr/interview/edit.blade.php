@@ -5,7 +5,7 @@
 <div class="content">
 <div class="container">
 
-    <h2 class="my-5">Edit Candidate</h2>
+    <h2 class="my-5">Edit Candidates</h2>
     @if(session('error'))
         @component('alert')
             @slot('class')
@@ -21,7 +21,7 @@
     @endif
     <div class="row mb-5">
         <div class="col-md-12">
-        <form action="{{ route('hrinterview.update',$interviewdetails->id) }}" method="post">
+        <form action="{{ route('interview.update',$interviewdetails->id) }}" method="post">
             @csrf
             @method('put')
             <div class="row mb-2">

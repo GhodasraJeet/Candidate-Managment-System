@@ -4,8 +4,15 @@ namespace App\Http\Controllers\api;
 
 use App\User;
 use Exception;
+use App\Jobs\NewUser;
+use App\Jobs\sendmail;
+use App\Jobs\SendEmailJob;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
+use App\Jobs\NewUserRegister;
+use App\Jobs\SendWelcomeEmail;
+use App\Mail\RegisterUserMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 
 class HrController extends BaseController
 {
@@ -16,7 +23,7 @@ class HrController extends BaseController
      */
     public function index()
     {
-        $interview=User::with('getCandidate')->get();
+        $interview=User::orderBy('id','desc')->where('role','hr')->paginate(10);
         if (is_null($interview)) {
             return $this->sendError('HR not found.');
         }
@@ -35,13 +42,27 @@ class HrController extends BaseController
     {
         try
         {
-            $interview = User::create($request->all());
+            $input = $request->all();
+            $validator = Validator::make($input, [
+                'email' => 'required|unique:users,email',
+                'name'=>'required',
+                'password'=>'required',
+                'role'=>'required|in:admin,hr'
+            ],
+            [
+                "name.unique"=>"$request->name Category is alerady existed"
+            ]);
+            if($validator->fails()){
+                return $this->sendError('Validation Error.', $validator->errors());
+            }
+            $hr = User::create($input);
+            NewUser::dispatch($hr)->delay(now()->addMinutes(1));
         }
         catch(Exception $exception)
         {
             return $this->sendError($exception->getMessage());
         }
-        return $this->sendResponse($interview->toArray(), 'HR saved successfully.');
+        return $this->sendResponse($hr->toArray(), 'HR saved successfully.');
     }
 
     /**
@@ -52,16 +73,21 @@ class HrController extends BaseController
      */
     public function show($id)
     {
-        $interview=User::with('getCandidate')->find($id);
-        if (is_null($interview)) {
-            return $this->sendError('HR not found.');
+        try
+        {
+            $interview=User::with('getCandidate')->find($id);
+            if (is_null($interview)) {
+                return $this->sendError('HR not found.');
+            }
+            return $this->sendResponse($interview->toArray(), 'HR retrieved successfully.');
+
         }
-        return $this->sendResponse($interview->toArray(), 'HR retrieved successfully.');
+        catch(Exception $exception)
+        {
+            return $this->sendError($exception->getMessage());
+        }
 
     }
-
-
-
     /**
      * Update the specified resource in storage.
      *
@@ -75,8 +101,14 @@ class HrController extends BaseController
         {
             $input = $request->all();
             $interview = User::findOrFail($id);
-            if(User::where('email',$request->email)->count()>0){
-                return $this->sendError('Validation Error.', ['Email is already taken']);
+            $validator = Validator::make($input, [
+                'email' => 'unique:users,email,'.$id,
+            ],
+            [
+                "email.unique"=>"$request->email Email is alerady taken "
+            ]);
+            if($validator->fails()){
+                return $this->sendError('Validation Error.', $validator->errors());
             }
             $interview->update($request->all());
         }
@@ -96,13 +128,14 @@ class HrController extends BaseController
      */
     public function destroy($id)
     {
-        $candidate=User::destroy($id);
-        if ($candidate) {
-            return $this->sendError('HR deleted successfully.');
-        }
-        else
+        try
         {
-            return $this->sendResponse($candidate, 'HR could not delete.');
+            $candidate=User::destroy($id);
+            return $this->sendResponse($candidate,'HR deleted successfully.');
+        }
+        catch(Exception $exception)
+        {
+            return $this->sendError($candidate, 'HR could not delete.');
         }
     }
 }

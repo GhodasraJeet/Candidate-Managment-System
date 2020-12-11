@@ -1,5 +1,6 @@
 @extends('hr.layouts.app')
 @section('title','Display Single Category')
+
 @section('content')
 
 <div class="content">

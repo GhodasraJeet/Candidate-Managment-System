@@ -1,0 +1,53 @@
+a.dt-button
+{
+    background-color: blue !important;
+    background-image: none;
+    color: #fff;
+    border-radius: 50px;
+}
+
+a.dt-button:hover
+{
+    color: blue;
+    background-image: none;
+    background-color: #fff;
+}
+
+.btn-primary,.active
+{
+    background-color: blue !important;
+}
+
+
+table.dataTable thead .sorting:before, table.dataTable thead .sorting_asc:before, table.dataTable thead .sorting_desc:before, table.dataTable thead .sorting_asc_disabled:before, table.dataTable thead .sorting_desc_disabled:before
+{
+    color: blue;
+}
+table.dataTable thead .sorting:after, table.dataTable thead .sorting_asc:after, table.dataTable thead .sorting_desc:after, table.dataTable thead .sorting_asc_disabled:after, table.dataTable thead .sorting_desc_disabled:after
+{
+    color: blue;
+}
+
+.page-item.active .page-link
+{
+    background-color: blue !important;
+}
+.text-active
+{
+    color: blue !important;
+}
+
+
+#plan .card
+{
+    width: 300px;
+    transition: .5s;;
+    text-align: center;
+    border-radius: 20px;
+    box-shadow: 0 10px 10px rgba(0,0,0,.3);
+    margin: 1em;
+}
+#plan .card:hover
+{
+    background-color: beige;
+}

@@ -21,7 +21,7 @@
                 @endif
     <div class="row">
         <div class="col-md-12">
-        <form action="{{ route('hrcategory.update',$categoryfulldetails->id) }}" method="post">
+        <form action="{{ route('category.update',$categoryfulldetails->id) }}" method="post">
             @csrf
             @method('put')
             <div class="form-group">

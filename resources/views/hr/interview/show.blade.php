@@ -17,8 +17,14 @@
             @endslot
         @endcomponent
     @endif
-    <h2 class="text-center my-5">Display Interview</h2>
-
+    <h2 class="text-center my-5">Display Candidates</h2>
+    <div class="row">
+        <div class="container">
+            <div class="main">
+                <a href="/send" class="btn btn-default float-right">Send Email</a>
+            </div>
+        </div>
+    </div>
     <div class="row mb-5">
         <div class="col-md-12">
             <div class="row mb-2">

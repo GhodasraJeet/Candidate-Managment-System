@@ -19,6 +19,7 @@ class CheckAdmin
         {
             return $next($request);
         }
-        return redirect('adminlogin');
+        return redirect()->route('login')->with('warning','You are not Authorized');
+        // return redirect('login')->with('warning','You are not Authorized');
     }
 }

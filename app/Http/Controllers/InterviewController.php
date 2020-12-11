@@ -6,6 +6,8 @@ use Exception;
 use App\Category;
 use App\Interview;
 use Illuminate\Http\Request;
+use App\DataTables\InterviewerDataTable;
+use App\Exceptions\UserNotFoundException;
 
 class InterviewController extends Controller
 {
@@ -14,52 +16,10 @@ class InterviewController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+
+    public function index(InterviewerDataTable $datatable)
     {
-        if($request->ajax())
-        {
-            if($request->category)
-            {
-                if(!empty($request->from_date))
-                {
-                    $category=$request->category;
-                    $interviewDetails=Interview::with('getCategory','getHrDetails')->whereHas('getCategory',function($q) use($category){
-                        $q->where('id','=',$category);
-                    })->whereBetween('created_at', array($request->from_date, $request->to_date))->where('hr_id','!=',auth()->user()->id)->get();
-                }
-                else
-                {
-                    $category=$request->category;
-                    $interviewDetails=Interview::with('getCategory','getHrDetails')->whereHas('getCategory',function($q) use($category){
-                        $q->where('id','=',$category);
-                    })->where('hr_id','!=',auth()->user()->id)->get();
-                }
-            }
-            else
-            {
-                if(!empty($request->from_date))
-                {
-                    $interviewDetails=Interview::with('getCategory','getHrDetails')->whereBetween('created_at', array($request->from_date, $request->to_date))->where('hr_id','!=',auth()->user()->id)->get();
-                }
-                else
-                {
-                    $interviewDetails=Interview::with('getCategory','getHrDetails')->where('hr_id','!=',auth()->user()->id)->get();
-                }
-            }
-
-            return datatables()->of($interviewDetails)->addIndexColumn()
-            ->editColumn('category',function($interviewDetails){
-                return $interviewDetails->getCategory->name;
-            })
-            ->addColumn('action', function($row){
-
-                    $btn =  $row->getHrDetails->name.' cannot edit or delete.';
-
-                return $btn;
-            })->rawColumns(['action','category'])->make(true);
-        }
-        $category = Category::get();
-        return view('hr.interview.interview_details',compact('category'));
+        return $datatable->render('hr.interview.interview_details');
 
     }
 
@@ -85,11 +45,11 @@ class InterviewController extends Controller
         $this->validate(
             $request,
             [
-                "candidate_name" => "required|string|unique:interview,name",
+                "candidate_name" => "required|string",
                 "candidate_email"=> "required|string|unique:interview,email",
                 "candidate_graduate"=> "required|string",
-                "candidate_phone"=> "required|digits:10",
-                "candidate_otherphone"=> "required|digits:10",
+                "candidate_phone"=> "required|min:10",
+                "candidate_otherphone"=> "required|min:10",
                 "candidate_category"=>"required",
                 "candidate_expereince"=>"required|numeric",
                 "candidate_current_salary"=>"required|numeric",
@@ -115,7 +75,7 @@ class InterviewController extends Controller
         $category->hr_id=auth()->user()->id;
         if($category->save())
         {
-            return redirect()->route('hrinterview.mycandidate')->with('success','Interview added Successfully...!');
+            return redirect()->route('interview.index')->with('success','Interview added Successfully...!');
         }
 
     }
@@ -134,7 +94,7 @@ class InterviewController extends Controller
         }
         catch(Exception $exception)
         {
-            throw new \App\Exceptions\UserNotFoundException('Interviewer not found');
+            throw new UserNotFoundException('Interviewer not found');
         }
         return view('hr.interview.show',compact('interviewDetails'));
     }
@@ -149,14 +109,22 @@ class InterviewController extends Controller
     {
         try
         {
-            $interviewdetails=Interview::findorfail($id);
-            $categoryDetails=Category::get();
-            return view('hr.interview.edit',compact('interviewdetails','categoryDetails'));
+            $hr_id=Interview::where('id',$id)->value('hr_id');
+            if(auth()->user()->id==$hr_id)
+            {
+                $interviewdetails=Interview::findorfail($id);
+                $categoryDetails=Category::get();
+                return view('hr.interview.edit',compact('interviewdetails','categoryDetails'));
+            }
+            else
+            {
+                return redirect()->route('interview.index')->with('warning','You are not alligble to edit candidate...!');
+            }
+
         }
         catch(Exception $exception)
         {
-            throw new \App\Exceptions\UserNotFoundException('Interviewer not found');
-
+            throw new UserNotFoundException('Interviewer not found');
         }
     }
 
@@ -175,32 +143,30 @@ class InterviewController extends Controller
             ->update(
                 [
                     'name'=>$request->candidate_name,
-        'email'=>$request->candidate_email,
-        'graduation'=>$request->candidate_graduate,
-        'phone'=>$request->candidate_phone,
-        'other_phone'=>$request->candidate_otherphone,
-        'category_id'=>$request->candidate_category,
-        'experience'=>$request->candidate_expereince,
-        'current_salary'=>$request->candidate_current_salary,
-        'expected_salary'=>$request->candidate_expected_salary,
-        'practical_remarks'=>$request->candidate_practical_remarks,
-        'technical_remarks'=>$request->candidate_technical_remarks,
-        'general_remarks'=>$request->candidate_general_remarks
+                    'email'=>$request->candidate_email,
+                    'graduation'=>$request->candidate_graduate,
+                    'phone'=>$request->candidate_phone,
+                    'other_phone'=>$request->candidate_otherphone,
+                    'category_id'=>$request->candidate_category,
+                    'experience'=>$request->candidate_expereince,
+                    'current_salary'=>$request->candidate_current_salary,
+                    'expected_salary'=>$request->candidate_expected_salary,
+                    'practical_remarks'=>$request->candidate_practical_remarks,
+                    'technical_remarks'=>$request->candidate_technical_remarks,
+                    'general_remarks'=>$request->candidate_general_remarks
                 ]
             );
             if($result)
             {
-                return redirect()->route('hrinterview.mycandidate')->with('success','Interview Updated successfully...!');
+                return redirect()->route('interview.index')->with('success','Interview Updated successfully...!');
             }
         }
-        catch(Exception $exception)
-        {
-            dd('ee');
+        catch(Exception $exception){
+            throw new UserNotFoundException('Interviewer not found');
         }
-
     }
-
     /**
+
      * Remove the specified resource from storage.
      *
      * @param  int  $id
@@ -210,72 +176,24 @@ class InterviewController extends Controller
     {
         try
         {
-            Interview::findorfail($id)->delete();
-            $msg['msg']="Not Delete Beacuse candidate is exist";
-            $msg['status']="false";
-            return json_encode($msg);
-            // return redirect()->route('hrinterview.mycandidate')->with('warning','Interview deleted Successfully...!');
-        }
-        catch(Exception $ex)
-        {
-            $msg['msg']="Not Delete Beacuse candidate is exist";
-            $msg['status']="false";
-            return json_encode($msg);
-        }
-    }
-
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function mycandidate(Request $request)
-    {
-        if($request->ajax())
-        {
-            if($request->category)
+            $hr_id=Interview::where('id',$id)->value('hr_id');
+            if(auth()->user()->id==$hr_id)
             {
-                if(!empty($request->from_date))
-                {
-                    $category=$request->category;
-                    $interviewDetails=Interview::with('getCategory')->whereHas('getCategory',function($q) use($category){
-                        $q->where('id','=',$category);
-                    })->whereBetween('created_at', array($request->from_date, $request->to_date))->where('hr_id',auth()->user()->id)->get();
-                }
-                else
-                {
-                    $category=$request->category;
-                    $interviewDetails=Interview::with('getCategory')->whereHas('getCategory',function($q) use($category){
-                        $q->where('id','=',$category);
-                    })->where('hr_id',auth()->user()->id)->get();
-                }
+                Interview::findorfail($id)->delete();
+                $msg['msg']="Candidate Deleted";
+                $msg['status']="true";
+                return json_encode($msg);
             }
             else
             {
-                if(!empty($request->from_date))
-                {
-                    $interviewDetails=Interview::with('getCategory')->whereBetween('created_at', array($request->from_date, $request->to_date))->where('hr_id',auth()->user()->id)->get();
-                }
-                else
-                {
-                    $interviewDetails=Interview::with('getCategory')->where('hr_id',auth()->user()->id)->get();
-                }
+                return redirect()->route('interview.index')->with('warning','You are not alligble to edit candidate...!');
             }
-
-            return datatables()->of($interviewDetails)->addIndexColumn()
-            ->editColumn('category',function($interviewDetails){
-                return $interviewDetails->getCategory->name;
-            })
-            ->addColumn('action', function($row){
-
-                    $btn = '<div class="d-flex justify-content-around align-items-center"><a href="'.route('hrinterview.show',$row->id).'" class="edit mr-3"><i class="fa fa-eye"></i></a>';
-                    $btn = $btn.'<button class="btn deleteCandidate" data-id="'.$row->id.'"><i class="fa fa-trash"></i></button>';
-                    $btn = $btn.'<a href="'.route('hrinterview.edit',$row->id).'" class="edit mr-3"><i class="fa fa-edit"></i></a></div>';
-
-                return $btn;
-            })->rawColumns(['action','category'])->make(true);
         }
-        $category = Category::get();
-        return view('hr.interview.mycandidate',compact('category'));
+        catch(Exception $ex){
+            $msg['msg']="Not Delete Beacuse candidate is exist";
+            $msg['status']="false";
+            return json_encode($msg);
+        }
     }
+
 }

@@ -3,13 +3,11 @@
 @section('css')
     <link rel="stylesheet" href="{{ asset('css/dataTables.bootstrap4.min.css')}}">
     <link rel="stylesheet" href="{{ asset('css/responsive.bootstrap4.min.css')}}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.0.3/css/buttons.dataTables.min.css">
 @endsection
 @section('content')
-
 <div class="content">
-
-<div class="container" id="deleteCandidate">
+<div class="py-4 px-3 px-md-4" id="deleteCandidate">
 
 
       @if (session('error'))
@@ -52,176 +50,156 @@
     @endcomponent
 
     @endif
-    <h2 class="mt-5">Interview Details</h2>
+    <h2>Candidates Details</h2>
 
     {{--  Display Add New HR Message --}}
 
-    <div class="row input-daterange my-5">
+    <div class="float-right">
+        <a href="{{ route('interview.create') }}" class="btn btn-primary">Add Candidates&nbsp;&nbsp;<i class="fa fa-plus"></i></a>
+    </div>
+    <div class="clearfix"></div>
+    <div class="row justify-content-center mt-5">
+
+          <div class="custom-control custom-radio mr-2">
+            <input type="radio" id="allCandidate" name="candidate" class="custom-control-input" value="all">
+            <label class="custom-control-label" for="allCandidate">All Candidate</label>
+          </div>
+          <div class="custom-control custom-radio">
+            <input type="radio" id="myCandidate" name="candidate" class="custom-control-input" value="my">
+            <label class="custom-control-label" for="myCandidate">My Candidate</label>
+          </div>
+    </div>
+    <div class="row input-daterange align-items-end my-5">
         <div class="col-md-4">
-            <input type="text" name="from_date" id="from_date" class="form-control border border-primary" placeholder="From Date" readonly />
+            <label for="">From Date</label>
+            <input type="date" name="start_date" id="start_date" class="form-control border border-primary" placeholder="From Date" />
         </div>
         <div class="col-md-4">
-            <input type="text" name="to_date" id="to_date" class="form-control border border-primary" placeholder="To Date" readonly />
+            <label for="">To Date</label>
+            <input type="date" name="end_date" id="end_date" class="form-control border border-primary" placeholder="To Date" />
         </div>
         <div class="col-md-4">
             <div class="btn-group">
-            <button type="button" name="filter" id="filter" class="btn btn-primary">Filter</button>
-            <button type="button" name="refresh" id="refresh" class="btn btn-default">Refresh</button>
+            <button type="button" name="Generate" id="Generate" class="btn btn-primary">Filter</button>
+            <button type="button" name="reset" id="reset" class="btn btn-default">Clear</button>
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="table-responsive">
-            <table class="table" id="candidateDetails">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>OtherPhone</th>
-                        <th width="40%">
-                            <select name="category_filter" id="category_filter" class="form-control">
-                                <option value="">Select Category</option>
-                                    @foreach($category as $row)
-                                <option value="{{ $row->id }}">{{ $row->name }}</option>
-                                    @endforeach
-                            </select>
-                        </th>
-                        <th>Experince</th>
-                        <th>Current Salary</th>
-                        <th>Expected Salary</th>
-                        <th>Graduation</th>
-                        <th>Practical Remarks</th>
-                        <th>Technical Remarks</th>
-                        <th>General Remarks</th>
-                        <th>Created_at</th>
-                        <th>Operations</th>
-                    </tr>
-                </thead>
-                <tbody>
-
-                </tbody>
-            </table>
-        </div>
-    </div>
+        {!! $dataTable->table() !!}
+        {!! $dataTable->scripts() !!}
 </div>
 
 </div>
 @endsection
 @section('js')
 <script src="{{ asset('js/jquery.dataTables.min.js') }}"></script>
+<script src="https://cdn.datatables.net/buttons/1.0.3/js/dataTables.buttons.min.js"></script>
 <script src="{{ asset('js/dataTables.bootstrap4.min.js') }}"></script>
 <script src="{{ asset('js/dataTables.responsive.min.js') }}"></script>
 <script src="{{ asset('js/responsive.bootstrap4.min.js') }}"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.js"></script>
+<script src="{{ asset('vendor/datatables/buttons.server-side.js') }}"></script>
+
 <script>
-$(document).ready(function(){
+
+    let a='';
+
+    $('#allCandidate').prop('checked',true);
+        const table=$('#interviewer-table');
+        table.on('preXhr.dt',function(e,settings,data){
+        data.start_date=$('#start_date').val();
+        data.end_date=$('#end_date').val();
+        data.id=a;
+    });
+
+    $('input[type=radio]').on('change',function(e){
+        if($(this).val()=="my")
+        {
+            table.on('preXhr.dt',function(e,settings,data){
+                data.start_date=$('#start_date').val();
+                data.end_date=$('#end_date').val();
+
+                data.id={{ session('email')->user->id }};
+            });
+        }
+        else if($(this).val()=="all")
+        {
+            table.on('preXhr.dt',function(e,settings,data){
+                data.start_date=$('#start_date').val();
+                data.end_date=$('#end_date').val();
+                data.id='';
+            });
+        }
+        table.DataTable().ajax.reload();
+        return false;
+
+    });
 
     $.ajaxSetup({
-          headers: {
-              'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-          }
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
     });
 
-    $('.input-daterange').datepicker({
-        todayBtn:'linked',
-        format:'yyyy-mm-dd',
-        autoclose:true
+    $('#Generate').on('click',function(){
+        table.DataTable().ajax.reload();
+        return false;
     });
 
-    fetchCategory();
+    $('#reset').on('click',function(){
+        $('#start_date').val(" ");
+        $('#end_date').val(" ");
 
-    $('#category_filter').change(function(){
-        var category_id = $('#category_filter').val();
-        $('#candidateDetails').DataTable().destroy();
-        fetchCategory(category_id);
-    });
-
-    function fetchCategory(category='',from_date = '', to_date = '')
-    {
-        $('#candidateDetails').DataTable({
-        "processing": true,
-        "serverSide":true,
-        "responsive":true,
-        ajax:{
-            url:"{{route('hrinterview.index')}}",
-            data: {category:category,from_date:from_date, to_date:to_date},
-        },
-        columns:[
-            {data:"name",className:"name"},
-            {data:"email",className:"email"},
-            {data:"phone",className:"phone"},
-            {data:"other_phone",className:"other_phone"},
-            {data:"category",className:"category",orderable:false},
-            {data:"experience",className:"experience"},
-            {data:"current_salary",className:"current_salary"},
-            {data:"expected_salary",className:"expected_salary"},
-            {data:"graduation",className:"graduation"},
-            {data:"practical_remarks",className:"practical_remarks"},
-            {data:"technical_remarks",className:"technical_remarks"},
-            {data:"general_remarks",className:"general_remarks"},
-            {data:"created_at",className:"created_at"},
-            {data: 'action', name: 'action', orderable: false, searchable: false},
-            ]
+        table.on('preXhr.dt',function(e,settings,data){
+            data.start_date='';
+            data.end_date='';
+            data.id='';
         });
-    }
+        $('#allCandidate').prop('checked',true);
 
-    $('#filter').click(function(){
-        var from_date = $('#from_date').val();
-        var to_date = $('#to_date').val();
-        if(from_date != '' &&  to_date != '')
-        {
-            $('#candidateDetails').DataTable().destroy();
-            fetchCategory('',from_date, to_date);
-        }
-        else
-        {
-            alert('Both Date is required');
-        }
+       table.DataTable().ajax.reload();
+        return false;
     });
-
-
-    $('#refresh').click(function(){
-        $('#from_date').val('');
-        $('#to_date').val('');
-        $('#candidateDetails').DataTable().destroy();
-        fetchCategory();
-    });
-
 
     $('body').on('click', '.deleteCandidate', function () {
-     var product_id = $(this).data("id");
-     if(confirm("Are You sure want to delete !"))
-     {
-        $.ajax({
-         type: "DELETE",
-         url: "{{ route('hrinterview.index') }}"+'/'+product_id,
-         success: function (data) {
-            $('#candidateDetails').DataTable().ajax.reload();
+        var product_id = $(this).data("id");
+        if(confirm("Are You sure want to delete !"))
+        {
+            $.ajax({
+            type: "DELETE",
+            url: "{{ route('interview.index') }}"+'/'+product_id,
+            success: function (data) {
+            $('#interviewer-table').DataTable().ajax.reload();
             var r=JSON.parse(data);
             if(r.status==true)
             {
                 $alert="<div class='alert alert-danger alert-dismissible fade show' role='alert'><strong>Danger</strong>"+
                 r.msg+"<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>";
                 $('#deleteCandidate').prepend($alert);
+                setTimeout(() => {
+                $('.alert').alert('dispose');
+                    $(".alert").slideUp(500);
+                }, 4000);
             }
             else
             {
                 $alert="<div class='alert alert-danger alert-dismissible fade show' role='alert'><strong>Danger</strong>"+
                 r.msg+"<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>";
                 $('#deleteCandidate').prepend($alert);
+                setTimeout(() => {
+                $('.alert').alert('dispose');
+                    $(".alert").slideUp(500);
+                }, 4000);
             }
-         },
-         error: function (data) {
-             console.log('Error:', data);
-         }
-     });
-     }
-     else
-     {
-        return false;
-     }
- });
-});
+                },
+            error: function (data) {
+                    console.log('Error:', data);
+                }
+            });
+        }
+        else
+        {
+            return false;
+        }
+    });
 </script>
 @endsection

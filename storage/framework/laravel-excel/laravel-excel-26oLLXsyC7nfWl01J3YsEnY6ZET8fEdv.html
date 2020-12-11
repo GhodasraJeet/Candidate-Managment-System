@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_token" content="HJnbRn9yWpGaxclTJI62pknlx5golZaFcS1aO0Jv">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link rel="stylesheet" href="http://localhost/candidate/public/css/css/all.min.css">
+    <link rel="stylesheet" href="http://localhost/candidate/public/css/tempusdominus-bootstrap-4.min.css">
+    <link rel="stylesheet" href="http://localhost/candidate/public/css/icheck-bootstrap.min.css">
+    <link rel="stylesheet" href="http://localhost/candidate/public/css/adminlte.min.css">
+    <title>Document</title>
+    <style>
+        .active
+        {
+            background-color: blue;
+            color: #fff;
+        }
+        th,button
+        {
+            cursor: pointer;
+        }
+
+        button
+        {
+            transition: 0.5s;
+        }
+        input[type='search']
+        {
+            border-radius: 20px;
+        }
+        .page,button
+        {
+            margin-right: 1em;
+            padding: 5px 30px;
+            outline: none !important;
+            border:none !important;
+            border-radius: 35px;
+        }
+        .page:hover,button:hover
+        {
+            background-color: blue;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container p-5">
+        <input type="search" name="" id="search" placeholder="Search Here" class="form-control float-right my-2 px-3">
+        <div class="clearfix"></div>
+        <form method='post' action='http://localhost/candidate/public/export'>
+            <input type="hidden" name="_token" value="HJnbRn9yWpGaxclTJI62pknlx5golZaFcS1aO0Jv">
+            <input type="submit" name="exportexcel" value='Excel Export'>
+            <input type="submit" name="exportcsv" value='CSV Export'>
+            <input type="submit" value="exportpdf" value="PDF EXport">
+          </form>
+          <a href="http://localhost/candidate/public/downloadExcel/xls"><button class="btn btn-success">Download Excel xls</button></a>
+	<a href="http://localhost/candidate/public/downloadExcel/xlsx"><button class="btn btn-success">Download Excel xlsx</button></a>
+	<a href="http://localhost/candidate/public/downloadExcel/csv"><button class="btn btn-success">Download CSV</button></a>
+
+        <table class="table border text-center">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <div class="btn-group float-right mb-5">
+        <button id="previous">Previous</button>
+        <div class="pagination">
+        </div>
+        <button id="next">next</button>
+        </div>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script>
+        $(document).ready(function(){
+
+            var data='';
+            var current_page='';
+            var page=0;
+            var next_page='';
+            var prev_page='';
+
+            $.ajaxSetup({
+                  headers: {
+                      'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+                }
+            });
+
+            $('th').click(function(){
+                var table=$(this).parents('table').eq(0);
+                var rows=table.find('tr:gt(0)').toArray().sort(comparer($(this).index()));
+                this.asc=!this.asc;
+                if(!this.asc){
+                    rows=rows.reverse();
+                }
+                for(var i=0;i<rows.length;i++)
+                {
+                    table.append(rows[i]);
+                }
+            });
+            function comparer(index){
+                return function(a,b){
+                    var valA=getCellValue(a,index),valB=getCellValue(b,index);
+                    return $.isNumeric(valA) && $.isNumeric(valB) ? valA-valB:valA.toString().localeCompare(valB);
+                }
+            }
+            function getCellValue(row,index){
+                return $(row).children('td').eq(index).text();
+            }
+
+            fetchpage(page);
+
+            $('#search').on('keyup',function(){
+                var search= $(this).val().toLowerCase();
+                searchMy(search);
+            });
+
+            function searchMy(search)
+            {
+                $('tbody tr').filter(function(){
+                        $(this).toggle($(this).text().toLowerCase().indexOf(search)>-1);
+                });
+            }
+
+            function fetchpage(page)
+            {
+                $('tbody,.pagination').empty();
+                $.ajax({
+                    type:'get',
+                    url:"http://localhost/candidate/public/getallData",
+                    data:{
+                        page:page
+                    },
+                    success:function(data){
+                        current_page=data.current_page;
+                        next_page=data.next_page;
+                        prev_page=data.prev_page;
+                        if(data.next_page==null){
+                            $('#next').hide();
+                        }
+                        else{
+                            $('#next').show();
+                        }
+                        if(data.prev_page!=null){
+                            $('#previous').show();
+                        }
+                        else{
+                            $('#previous').hide();
+                        }
+
+                        for(var i=0;i<data.data.length;i++)
+                        {
+                            // $('table').append('<tr><td>'+data.data[i].id+'</td><td>'+data.data[i].name+'</td><td><a href=http://localhost/candidate/public/category/data.data%5Bi%5D.id"><i class="fa fa-eye active"></i></a></td></tr>');
+                            $('table').append('<tr><td>'+data.data[i].id+'</td><td>'+data.data[i].name+'</td><td><a href="http://localhost/candidate/public/category/'+data.data[i].id+'"><i class="fa fa-eye active"></i></a><button id="delete">Delete</button></td></tr>');
+                        }
+                        for(var j=1;j<=data.last_page;j++)
+                        {
+                            if(current_page==j){
+                                $('.pagination').append('<button class="active page" data-page="'+j+'">'+j+'</button>');
+                            }
+                            else{
+                                $('.pagination').append('<button class="page" data-page="'+j+'">'+j+'</button>');
+                            }
+                        }
+                        $('.page').on('click',function(){
+                            var page=$(this).attr('data-page');
+                            fetchpage(page);
+                        });
+                        $('#delete').click(function(){
+                            alert('sssss');
+                        });
+                    }
+                });
+            }
+
+        $('#next').on('click',function(){
+            fetchpage(current_page+1);
+        });
+        $('#previous').on('click',function(){
+            fetchpage(current_page-1);
+        });
+
+        });
+
+    </script>
+</body>
+</html>

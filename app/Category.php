@@ -10,14 +10,20 @@ class Category extends Model
     protected $fillable = [
         'name','hr_id'
     ];
-    // Get The User Name
+    protected $dates = [
+        'created_at',
+        'updated_at',
+    ];
+
+    // Get The HR Details
 
     public function getUserName()
     {
         return $this->belongsTo(User::class,"hr_id");
     }
+    // Get The proper date
 
-    public function getcreatedatAttribute($value)
+    public function getcreatedAtAttribute($value)
     {
         $date=date_create($value);
         return date_format($date,"d M Y");

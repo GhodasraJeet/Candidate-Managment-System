@@ -19,6 +19,6 @@ class CheckHr
         {
             return $next($request);
         }
-        return redirect()->route('hr.login');
+        return redirect()->route('login')->with('warning','You are not Authorized');
     }
 }

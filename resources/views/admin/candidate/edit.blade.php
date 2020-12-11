@@ -20,7 +20,7 @@
         <h2 class="text-center py-3">Edit Candidate</h2>
         <div class="row">
             <div class="col-md-12">
-            <form action="{{ route('admincandidate.update',$hrfulldetails->id) }}" method="POST">
+            <form action="{{ route('candidates.update',$hrfulldetails->id) }}" method="POST">
                     @csrf
                     @method('put')
                     <div class="row mb-2">

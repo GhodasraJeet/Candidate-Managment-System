@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Category;
-use App\Interview;
 use App\User;
 use Exception;
+use App\Category;
+use App\Interview;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Ixudra\Curl\Facades\Curl;
 use Illuminate\Support\Facades\Hash;
+use App\Exceptions\UserNotFoundException;
 
 class AdminHrController extends Controller
 {
@@ -17,29 +19,9 @@ class AdminHrController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index()
     {
-        if($request->ajax())
-        {
-            if(!empty($request->from_date))
-            {
-                $hrfulldetails=User::with('getCandidate')->where('role','hr')->whereBetween('created_at', array($request->from_date, $request->to_date))->get();
-            }
-            else
-            {
-                $hrfulldetails=User::with('getCandidate')->where('role','hr')->get();
-            }
-
-            return datatables()->of($hrfulldetails)
-            ->addColumn('action', function($row){
-                $btn = '<div class="d-flex justify-content-around align-items-center"><a href="'.route('hr.show',$row->id).'" class="edit mr-3"><i class="fa fa-eye"></i></a>';
-                $btn = $btn.'<button class="btn deleteHr" data-id="'.$row->id.'"><i class="fa fa-trash"></i></button>';
-                $btn = $btn.'<a href="'.route('hr.edit',$row->id).'" class="edit mr-3"><i class="fa fa-edit"></i></a></div>';
-                return $btn;
-            })->rawColumns(['action'])->make(true);
-        }
         return view('admin.hrdetails');
-
     }
 
     /**
@@ -47,9 +29,61 @@ class AdminHrController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
-        return view('admin.createhr');
+        $user=$request->session()->get('email');
+        $token = "Authorization: Bearer ".$user->token->token;
+
+        if($request->ajax())
+        {
+            $page=$request->page;
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, "http://localhost/candidate/public/api/hr?page=$page");
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $token ,'Accept: application/json'));
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+            $output = curl_exec($ch);
+            $a=json_decode($output);
+            curl_close($ch);
+            $current_page=$a->data->current_page;
+            $prev_page=$a->data->prev_page_url;
+            $last_page=$a->data->last_page;
+            $next_page=$a->data->next_page_url;
+            $per_page=$a->data->per_page;
+            $total=$a->data->total;
+
+            $data['data']=$a->data->data;
+            $data['current_page']=$current_page;
+            $data['next_page']=$next_page;
+            $data['last_page']=$last_page;
+            $data['per_page']=$per_page;
+            $data['prev_page']=$prev_page;
+            $data['total']=$total;
+            return response()->json($data,200);
+        }
+        else
+        {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, "http://localhost/candidate/public/api/hr");
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $token ,'Accept: application/json'));
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+            $output = curl_exec($ch);
+            $a=json_decode($output);
+            curl_close($ch);
+            $current_page=$a->data->current_page;
+            $first_page=$a->data->first_page_url;
+            $last_page=$a->data->last_page;
+            $next_page=$a->data->next_page_url;
+
+            $data['data']=$a->data->data;
+            $data['current_page']=$current_page;
+            $data['next_page']=$next_page;
+            $data['last_page']=$last_page;
+            return response()->json($data,200);
+        }
     }
 
     /**
@@ -60,25 +94,19 @@ class AdminHrController extends Controller
      */
     public function store(Request $request)
     {
-        $this->validate(
-            $request,
-            [
-                "hrname" => "required|string",
-                "hremail" => "required|unique:users,email|email",
-                "password" => "required|confirmed|max:20|min:8"
-            ]
-        );
-        $user = User::create([
-            'name' => $request->hrname,
-            'email' => $request->hremail,
-            'password' => Hash::make($request->password),
-            'remember_token' => Str::random(60),
-            'role' => "hr"
-        ]);
-        if($user)
-        {
-            return redirect('hr')->with('success','Hr added Successfully...!');
-        }
+        $user=$request->session()->get('email');
+        $token = "Authorization: Bearer ".$user->token->token;
+        $data=[
+            'name'=>$request->name,
+            'email'=>$request->email,
+            'password'=>$request->password,
+            'role'=>'hr'
+        ];
+        $output = Curl::to('http://localhost/candidate/public/api/hr')
+        ->withBearer($user->token->token)
+        ->withData($data)
+        ->post();
+        return response()->json($output,200);
     }
 
     /**
@@ -87,19 +115,19 @@ class AdminHrController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request)
     {
-        try
-        {
-            $hrfulldetails=User::with('getCandidate')->where('role','hr')->findOrFail($id);
-        }
-        catch(Exception $exception)
-        {
-            throw new \App\Exceptions\UserNotFoundException('HR not found');
-
-        }
-        return view('admin.showhr',compact('hrfulldetails'));
-
+        $user=$request->session()->get('email');
+        $token = "Authorization: Bearer ".$user->token->token;
+        $hr_id=$request->hrid;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "http://localhost/candidate/public/api/hr/$hr_id");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $token ,'Accept: application/json'));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $output = curl_exec($ch);
+        curl_close($ch);
+        return response()->json($output,200);
     }
 
     /**
@@ -113,7 +141,7 @@ class AdminHrController extends Controller
         try {
             $hrfulldetails = User::where('role','hr')->where('id',$id)->firstorfail();
         } catch (Exception $exception) {
-            throw new \App\Exceptions\UserNotFoundException('HR not found');
+            throw new UserNotFoundException('HR not found');
         }
         return view('admin.edithr',compact('hrfulldetails'));
     }
@@ -127,19 +155,23 @@ class AdminHrController extends Controller
      */
     public function update(Request $request, $id)
     {
-        try
-        {
-            $result=User::where('role','hr')->where('id',$id)
-            ->update(['name' => $request->hrname,'email'=>$request->hremail]);
-            if($result)
-            {
-                return redirect('hr')->with('success','HR Updated successfully...!');
-            }
-        }
-        catch(Exception $exception)
-        {
-            throw new \App\Exceptions\UserNotFoundException('HR counld not be updated');
-        }
+        $user=$request->session()->get('email');
+        $token = "Authorization: Bearer ".$user->token->token;
+        $data=[
+            'name'=>$request->name,
+            'email'=>$request->email
+        ];
+        $response=json_encode($data);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "http://localhost/candidate/public/api/hr/$request->id");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $token ,'Accept: application/json'));
+        // curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json','Content-Length: ' . strlen($response)));
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $response);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $output = curl_exec($ch);
+        curl_close($ch);
+        return response()->json($output,200);
     }
 
     /**
@@ -148,62 +180,17 @@ class AdminHrController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        try
-        {
-            User::where('role','hr')->where('id',$id)->delete();
-        }
-        catch(Exception $ex)
-        {
-            throw new \App\Exceptions\UserNotFoundException('HR counld not be deleted');
-        }
-    }
-
-    public function candidate()
-    {
-        $category=Category::get();
-        $hr=User::where('role','hr')->get();
-        return view('admin.candidatelist',compact('category','hr'));
-    }
-
-    public function searchcandidate(Request $request)
-    {
-        if($request->candidate_category=="all")
-        {
-            $interview=Interview::with('getHrDetails')->get();
-        }
-        else
-        {
-            $interview=Interview::with('getHrDetails')->where('category_id',$request->candidate_category)->get();
-        }
-        return view('admin.candidatesearchlist',compact('interview'));
-    }
-
-    public function searchhr(Request $request)
-    {
-        if($request->hr_list=="all")
-        {
-            $interview=User::get();
-        }
-        else
-        {
-            $interview=User::with('getCandidate')->where('id',$request->hr_list)->get();
-        }
-        return view('admin.candidatehrlist',compact('interview'));
-    }
-
-    public function candidateSingle($canidate_id)
-    {
-        try
-        {
-            $candidate=Interview::with('getHrDetails')->findOrFail($canidate_id);
-        }
-        catch(Exception $exception)
-        {
-            throw new \App\Exceptions\UserNotFoundException('Candidate not found');
-        }
-        return view('admin.singlecandidate',compact('candidate'));
-
+        $user=$request->session()->get('email');
+        $token = "Authorization: Bearer ".$user->token->token;
+        $hr_id=$request->hrid;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "http://localhost/candidate/public/api/hr/$hr_id");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $token ,'Accept: application/json'));
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        $output = curl_exec($ch);
+        curl_close($ch);
     }
 }
