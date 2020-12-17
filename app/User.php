@@ -58,4 +58,13 @@ class User extends Authenticatable
     {
         $this->attributes['password'] = bcrypt($password);
     }
+
+    // Get The Plan
+    public function getPlan()
+    {
+        return $this->hasOne(Plan::class);
+    }
+    public function AauthAcessToken(){
+        return $this->hasMany('\App\OauthAccessToken');
+    }
 }

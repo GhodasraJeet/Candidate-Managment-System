@@ -31,12 +31,12 @@ class AdminCategoryController extends Controller
     public function create(Request $request)
     {
         $user=$request->session()->get('email');
-        $token = "Authorization: Bearer ".$user->token->token;
+        $token = "Authorization: Bearer ".$user['token']['token'];
         if($request->ajax())
         {
             $page=$request->page;
             $category = Curl::to('http://localhost/candidate/public/api/category?page=$page')
-            ->withBearer($user->token->token)
+            ->withBearer($user['token']['token'])
             ->asJson()
             ->get();
 
@@ -59,7 +59,7 @@ class AdminCategoryController extends Controller
         else
         {
             $category = Curl::to('http://localhost/candidate/public/api/category')
-            ->withBearer($user->token->token)
+            ->withBearer($user['token']['token'])
             ->asJson()
             ->get();
 
@@ -85,12 +85,12 @@ class AdminCategoryController extends Controller
     public function store(Request $request)
     {
         $user=$request->session()->get('email');
-        $token = "Authorization: Bearer ".$user->token->token;
+        $token = "Authorization: Bearer ".$user['token']['token'];
         $data=[
             'name'=>$request->category
         ];
         $category = Curl::to('http://localhost/candidate/public/api/category')
-        ->withBearer($user->token->token)
+        ->withBearer($user['token']['token'])
         ->withData($data)
         ->post();
         return response()->json($category,200);
@@ -105,10 +105,10 @@ class AdminCategoryController extends Controller
     public function show(Request $request)
     {
         $user=$request->session()->get('email');
-        $token = "Authorization: Bearer ".$user->token->token;
+        $token = "Authorization: Bearer ".$user['token']['token'];
         $category_id=$request->categoryid;
         $category = Curl::to('http://localhost/candidate/public/api/category/'.$category_id)
-            ->withBearer($user->token->token)
+            ->withBearer($user['token']['token'])
             ->get();
         return response()->json($category,200);
     }
@@ -142,21 +142,12 @@ class AdminCategoryController extends Controller
     public function update(Request $request, $id)
     {
         $user=$request->session()->get('email');
-        $token = "Authorization: Bearer ".$user->token->token;
-        $data=[
-            'name'=>$request->category
-        ];
-        $response=json_encode($data);
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "http://localhost/candidate/public/api/category/$request->id");
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $token ,'Accept: application/json'));
-        // curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json','Content-Length: ' . strlen($response)));
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $response);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $output = curl_exec($ch);
-        curl_close($ch);
-        return response()->json($output,200);
+        $data=['name'=>$request->category];
+        $response = Curl::to("http://localhost/candidate/public/api/category/$request->id")
+        ->withData( $data )
+        ->withBearer($user['token']['token'])
+        ->patch();
+        return response()->json($response,200);
     }
 
     /**
@@ -168,14 +159,10 @@ class AdminCategoryController extends Controller
     public function destroy(Request $request)
     {
         $user=$request->session()->get('email');
-        $token = "Authorization: Bearer ".$user->token->token;
         $category_id=$request->categoryid;
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "http://localhost/candidate/public/api/category/$category_id");
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $token ,'Accept: application/json'));
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-        $output = curl_exec($ch);
-        curl_close($ch);
+        $response = Curl::to("http://localhost/candidate/public/api/category/$category_id")
+        ->withBearer($user['token']['token'])
+        ->delete();
+        return response()->json($response,200);
     }
 }

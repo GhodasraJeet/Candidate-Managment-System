@@ -20,7 +20,7 @@ class CategoryDataTable extends DataTable
     public function dataTable($query)
     {
         $value = request()->session()->get('email');
-        $role=$value->user->role;
+        $role=$value['user']['role'];
         // Check role is admin display crud opeprations
 
         if($role=="admin")

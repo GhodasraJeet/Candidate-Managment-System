@@ -25,8 +25,8 @@ class InterviewerDataTable extends DataTable
     public function dataTable($query)
     {
         $value = request()->session()->get('email');
-        $this->cid=$value->user->id;
-        $role=$value->user->role;
+        $this->cid=$value['user']['id'];
+        $role=$value['user']['role'];
         // Check role is admin display crud opeprations
 
         if($role=="admin")
@@ -85,14 +85,13 @@ class InterviewerDataTable extends DataTable
     public function query(Interview $model)
     {
         $value = request()->session()->get('email');
-        $role=$value->user->role;
+        $role=$value['user']['role'];
         $start_date=$this->request()->get('start_date');
         $end_date=$this->request()->get('end_date');
 
         // Check role is Admin display Filter
 
-        if($role=="admin")
-        {
+        if($role=="admin"){
             $category=$this->request()->get('category');
             $hr=$this->request()->get('hr');
             $query= $model->newQuery();
@@ -174,7 +173,6 @@ class InterviewerDataTable extends DataTable
     protected function getColumns()
     {
         return [
-
             Column::make('name'),
             Column::make('Hr'),
             Column::make('email'),

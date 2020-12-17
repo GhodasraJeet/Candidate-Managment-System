@@ -118,7 +118,7 @@
                 data.start_date=$('#start_date').val();
                 data.end_date=$('#end_date').val();
 
-                data.id={{ session('email')->user->id }};
+                data.id={{ Auth::user()->id }};
             });
         }
         else if($(this).val()=="all")

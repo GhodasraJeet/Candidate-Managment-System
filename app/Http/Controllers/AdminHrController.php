@@ -32,28 +32,23 @@ class AdminHrController extends Controller
     public function create(Request $request)
     {
         $user=$request->session()->get('email');
-        $token = "Authorization: Bearer ".$user->token->token;
-
         if($request->ajax())
         {
             $page=$request->page;
             $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, "http://localhost/candidate/public/api/hr?page=$page");
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $token ,'Accept: application/json'));
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            $hr = Curl::to('http://localhost/candidate/public/api/hr?page=$page')
+            ->withBearer($user['token']['token'])
+            ->asJson()
+            ->get();
 
-            $output = curl_exec($ch);
-            $a=json_decode($output);
-            curl_close($ch);
-            $current_page=$a->data->current_page;
-            $prev_page=$a->data->prev_page_url;
-            $last_page=$a->data->last_page;
-            $next_page=$a->data->next_page_url;
-            $per_page=$a->data->per_page;
-            $total=$a->data->total;
+            $current_page=$hr->data->current_page;
+            $prev_page=$hr->data->prev_page_url;
+            $last_page=$hr->data->last_page;
+            $next_page=$hr->data->next_page_url;
+            $per_page=$hr->data->per_page;
+            $total=$hr->data->total;
 
-            $data['data']=$a->data->data;
+            $data['data']=$hr->data->data;
             $data['current_page']=$current_page;
             $data['next_page']=$next_page;
             $data['last_page']=$last_page;
@@ -64,21 +59,16 @@ class AdminHrController extends Controller
         }
         else
         {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, "http://localhost/candidate/public/api/hr");
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $token ,'Accept: application/json'));
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            $hr = Curl::to('http://localhost/candidate/public/api/hr')
+            ->withBearer($user['token']['token'])
+            ->asJson()
+            ->get();
+            $current_page=$hr->data->current_page;
+            $first_page=$hr->data->first_page_url;
+            $last_page=$hr->data->last_page;
+            $next_page=$hr->data->next_page_url;
 
-            $output = curl_exec($ch);
-            $a=json_decode($output);
-            curl_close($ch);
-            $current_page=$a->data->current_page;
-            $first_page=$a->data->first_page_url;
-            $last_page=$a->data->last_page;
-            $next_page=$a->data->next_page_url;
-
-            $data['data']=$a->data->data;
+            $data['data']=$hr->data->data;
             $data['current_page']=$current_page;
             $data['next_page']=$next_page;
             $data['last_page']=$last_page;
@@ -95,7 +85,6 @@ class AdminHrController extends Controller
     public function store(Request $request)
     {
         $user=$request->session()->get('email');
-        $token = "Authorization: Bearer ".$user->token->token;
         $data=[
             'name'=>$request->name,
             'email'=>$request->email,
@@ -103,7 +92,7 @@ class AdminHrController extends Controller
             'role'=>'hr'
         ];
         $output = Curl::to('http://localhost/candidate/public/api/hr')
-        ->withBearer($user->token->token)
+        ->withBearer($user['token']['token'])
         ->withData($data)
         ->post();
         return response()->json($output,200);
@@ -118,16 +107,11 @@ class AdminHrController extends Controller
     public function show(Request $request)
     {
         $user=$request->session()->get('email');
-        $token = "Authorization: Bearer ".$user->token->token;
         $hr_id=$request->hrid;
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "http://localhost/candidate/public/api/hr/$hr_id");
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $token ,'Accept: application/json'));
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        $output = curl_exec($ch);
-        curl_close($ch);
-        return response()->json($output,200);
+        $hr = Curl::to('http://localhost/candidate/public/api/hr/'.$hr_id)
+        ->withBearer($user['token']['token'])
+        ->get();
+        return response()->json($hr,200);
     }
 
     /**
@@ -156,22 +140,12 @@ class AdminHrController extends Controller
     public function update(Request $request, $id)
     {
         $user=$request->session()->get('email');
-        $token = "Authorization: Bearer ".$user->token->token;
-        $data=[
-            'name'=>$request->name,
-            'email'=>$request->email
-        ];
-        $response=json_encode($data);
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "http://localhost/candidate/public/api/hr/$request->id");
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $token ,'Accept: application/json'));
-        // curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json','Content-Length: ' . strlen($response)));
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $response);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $output = curl_exec($ch);
-        curl_close($ch);
-        return response()->json($output,200);
+        $data=['name'=>$request->name,'email'=>$request->email];
+        $response = Curl::to("http://localhost/candidate/public/api/hr/$request->id")
+        ->withData($data)
+        ->withBearer($user['token']['token'])
+        ->patch();
+        return response()->json($response,200);
     }
 
     /**
@@ -183,14 +157,10 @@ class AdminHrController extends Controller
     public function destroy(Request $request)
     {
         $user=$request->session()->get('email');
-        $token = "Authorization: Bearer ".$user->token->token;
         $hr_id=$request->hrid;
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "http://localhost/candidate/public/api/hr/$hr_id");
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $token ,'Accept: application/json'));
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-        $output = curl_exec($ch);
-        curl_close($ch);
+        $response = Curl::to("http://localhost/candidate/public/api/hr/$hr_id")
+        ->withBearer($user['token']['token'])
+        ->delete();
+        return response()->json($response,200);
     }
 }

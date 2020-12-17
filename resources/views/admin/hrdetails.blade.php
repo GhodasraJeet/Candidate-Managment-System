@@ -339,7 +339,8 @@
                     data:{
                             name:name,
                             email:email,
-                            password:password
+                            password:password,
+                            role:'hr'
                     },
                     success:function(response){
                         var r=JSON.parse(response);

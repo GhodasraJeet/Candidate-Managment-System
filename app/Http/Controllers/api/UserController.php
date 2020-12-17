@@ -6,7 +6,10 @@ use App\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Auth\Events\PasswordReset;
+use Laravel\Passport\HasApiTokens;
 
 class UserController extends Controller
 {
@@ -66,8 +69,10 @@ class UserController extends Controller
 
     public function logout(Request $request)
     {
-    	$user=Auth::user();
-        $user->token()->revoke();
+        $user = Auth::user()->token();
+$user->revoke();
+    	// $user=Auth::user();
+        // $user->token()->revoke();
 
         return response()->json([
           'success' => true,
@@ -81,5 +86,4 @@ class UserController extends Controller
       // }
 
     }
-
 }

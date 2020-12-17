@@ -3,6 +3,20 @@
 @section('content')
 <div class="content-header">
     <div class="container-fluid">
+        @if ($message = Session::get('success'))
+        @component('alert')
+            @slot('class')
+                success
+            @endslot
+            @slot('tag')
+                Success
+            @endslot
+            @slot('message')
+            {{$message}}
+            @endslot
+        @endcomponent
+    @endif
+    <a href="{{route('viewmail')}}" class="btn btn-primary float-right">Send Mail</a>
       <div class="row mb-2">
         <div class="col-sm-6">
           <h1 class="m-0 text-dark">Dashboard</h1>

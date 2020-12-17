@@ -18,6 +18,7 @@
 <div class="container" id="plan">
     <div class="row justify-content-center">
         <div class="col-md-12 d-flex my-5 flex-wrap">
+            @if(!Auth::user()->subscribed())
             @foreach($plans as $plan)
             <div class="card">
                 <div class="card-header"><h3>{{ $plan->name }}</h3></div>
@@ -28,6 +29,9 @@
                 </div>
             </div>
             @endforeach
+            @else
+                <h1 class="display-3 mx-auto">You have already selected.</h1>
+            @endif
         </div>
     </div>
 </div>

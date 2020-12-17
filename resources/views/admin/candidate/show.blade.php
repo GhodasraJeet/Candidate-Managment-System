@@ -17,7 +17,10 @@
                 @endslot
             @endcomponent
         @endif
+        <a href="{{route('viewmail')}}" class="btn btn-primary float-right">Send Mail</a>
+
         <h2 class="text-center py-4">Single Candidate</h2>
+
         <div class="row">
             <div class="col-md-12">
                 <form>

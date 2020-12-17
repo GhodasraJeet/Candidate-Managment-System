@@ -18,10 +18,11 @@
         @endcomponent
     @endif
     <h2 class="text-center my-5">Display Candidates</h2>
+
     <div class="row">
         <div class="container">
             <div class="main">
-                <a href="/send" class="btn btn-default float-right">Send Email</a>
+                <a href="{{route('hrviewmail')}}" class="btn btn-primary float-right">Send Email</a>
             </div>
         </div>
     </div>

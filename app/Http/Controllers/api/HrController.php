@@ -47,10 +47,7 @@ class HrController extends BaseController
                 'email' => 'required|unique:users,email',
                 'name'=>'required',
                 'password'=>'required',
-                'role'=>'required|in:admin,hr'
-            ],
-            [
-                "name.unique"=>"$request->name Category is alerady existed"
+                // 'role'=>'required|in:admin,hr'
             ]);
             if($validator->fails()){
                 return $this->sendError('Validation Error.', $validator->errors());

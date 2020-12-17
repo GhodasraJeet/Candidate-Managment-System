@@ -19,6 +19,7 @@
     @endif
 
     <h5 class="my-3">Dashboard</h5>
+    <a href="{{route('hrviewmail')}}" class="btn btn-primary float-right">Send Email</a>
             <div class="row">
             <div class="col-md-3 col-sm-6 col-12">
                 <a href="{{ route('interview.index') }}" class="text-dark">
@@ -53,9 +54,9 @@
                         <h5 class="card-title">{{ $currentPlan[0]->name }}</h5>
                           <p class="card-text">{{ $currentPlan[0]->description }}</p>
                           <code>Rs. {{ $currentPlan[0]->cost }}</code>
+                          {{-- <p>{{ Auth::user()->subscription('default')->trial_ends_at->format('dS M Y') }}</p> --}}
                           <a href="{{route('cancel')}}" class="btn btn-danger d-block my-4">Cancel Subscription</a>
                         </div>
-                      </div>
                 </div>
             </div>
             @endif

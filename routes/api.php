@@ -16,11 +16,14 @@ use Illuminate\Http\Request;
 // Route::middleware('auth:api')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
-Route::post('login', 'api\UserController@login');
-Route::post('register', 'api\UserController@register');
-Route::get('logout','api\UserController@logout');
-Route::group(['middleware'=>['auth:api','checkadmin']],function(){
-    Route::resource('category','api\CategoryController');
-    Route::resource('candidate','api\CandidateController');
-    Route::resource('hr','api\HrController');
+Route::group(['middleware' => ['json.response']], function () {
+    Route::post('login', 'api\UserController@login');
+    Route::post('register', 'api\UserController@register');
+    Route::post('logout','api\UserController@logout');
+    Route::group(['middleware'=>['auth:api']],function(){
+        Route::resource('category','api\CategoryController');
+        Route::resource('candidate','api\CandidateController');
+        Route::resource('hr','api\HrController');
+    });
 });
+

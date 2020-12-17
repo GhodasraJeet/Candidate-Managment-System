@@ -6,13 +6,18 @@ use App\User;
 use App\Category;
 use App\Interview;
 use App\Plan;
+use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
 
     // Display Admin Homepage Category,Candidates and HR Count
-    public function home()
+    public function home(Request $request)
     {
+
+        // $invoices = auth()->user()->invoicesIncludingPending();
+        // dd($invoices);
+        // dd($request->user()->asStripeCustomer()->subscriptions);
         $category=Category::count();
         $interview=Interview::count();
         $plans=Plan::count();

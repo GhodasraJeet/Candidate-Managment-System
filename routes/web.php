@@ -35,14 +35,23 @@ Route::group(['prefix'=>'admin','middleware'=>'checkadmin'],function(){
     Route::get('plan/{id}/edit','PlanController@editplan')->name('plan.edit');
     Route::delete('plan/{id}','PlanController@deleteplan')->name('plan.destroy');
     Route::put('plan/{id}','PlanController@updateplan')->name('plan.update');
+
+    // For Email
+    Route::get('mail','AdminMailController@viewmail')->name('viewmail');
+    Route::post('sendmail','AdminMailController@sendmail')->name('sendmail');
+
 });
 //  Route for HR
 
 Route::group(['middleware'=>'checkhr'],function(){
     Route::get('home','HrController@home')->name('hr.home');
     Route::group(['middleware'=>'checksubscribe'],function(){
+
         Route::resource('category','HrCategoryController');
         Route::resource('interview','InterviewController');
+
+        Route::get('hrmail','AdminMailController@hrviewmail')->name('hrviewmail');
+        Route::post('sendmail','AdminMailController@sendmail')->name('sendmail');
 
     });
     Route::get('/plans', 'SubscriptionController@index')->name('plans.index');

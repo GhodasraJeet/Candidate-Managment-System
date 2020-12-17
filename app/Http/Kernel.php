@@ -64,7 +64,8 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'checkadmin'=>\App\Http\Middleware\CheckAdmin::class,
         'checkhr'=>\App\Http\Middleware\CheckHr::class,
-        'checksubscribe'=>\App\Http\Middleware\CheckSubscribe::class
+        'checksubscribe'=>\App\Http\Middleware\CheckSubscribe::class,
+        'json.response' => \App\Http\Middleware\ForceJsonResponse::class,
     ];
 
     /**

@@ -25,7 +25,8 @@ class PlanController extends Controller
         $plans = Plan::all();
         $allCustomers=$this->stripe->customers->all();
         $customer=$allCustomers->data;
-        // dd($customer);
+        // $a=User::where('stripe_id','!=','null')->with('getPlan')->get();
+
         return view('admin.showplan', compact('plans','customer'));
     }
     public function createPlan()
