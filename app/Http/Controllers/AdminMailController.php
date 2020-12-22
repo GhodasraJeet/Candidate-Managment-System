@@ -22,6 +22,14 @@ class AdminMailController extends Controller
     }
     public function sendmail(Request $request)
     {
+        $this->validate(
+            $request,
+            [
+                "role"=>"required",
+                "subject" => "required",
+                "description" => "required",
+            ]
+        );
         if(Auth::user()->role=="admin")
         {
             if($request->role=="hr")

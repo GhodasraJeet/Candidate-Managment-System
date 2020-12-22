@@ -4,15 +4,26 @@
 
 <div class="content">
     <div class="container">
-        <form action="{{route('sendmail')}}" method="post">
+        <h1>Email</h1>
+        <form action="{{route('adminsendmail')}}" method="post">
             @csrf
             <div class="form-group">
                 <label for="">Enter Subject</label>
-                <input type="text" name="subject" class="form-control" placeholder="Enter Subject">
+                <input type="text" name="subject" class="form-control" placeholder="Enter Subject" value="{{ old('subject') }}">
+                @if ($errors->has('subject'))
+                    <span role="alert">
+                        <p class="text-danger">{{ $errors->first('subject') }}</p>
+                    </span>
+                @endif
             </div>
             <div class="form-group">
                 <label for="">Enter Description</label>
-                <textarea name="description" class="form-control"></textarea>
+                <textarea name="description" class="form-control" placeholder="Enter Description">{{ old('description') }}</textarea>
+                @if ($errors->has('description'))
+                    <span role="alert">
+                        <p class="text-danger">{{ $errors->first('description') }}</p>
+                    </span>
+                @endif
             </div>
             <div class="form-group">
                 <b>Which you send ?</b><br>
@@ -55,6 +66,11 @@
                     @endforelse
                 </select>
             </div>
+            @if ($errors->has('role'))
+                <span role="alert">
+                    <p class="text-danger">{{ $errors->first('role') }}</p>
+                </span>
+            @endif
             <input type="submit" value="Send Email" class="btn btn-primary">
         </form>
 

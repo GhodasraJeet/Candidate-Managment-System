@@ -122,7 +122,7 @@ return [
     'key' => env('APP_KEY'),
 
     'cipher' => 'AES-256-CBC',
-
+    'firebase_server_key' => env('FIREBASE_SERVER_KEY'),
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers
@@ -179,6 +179,7 @@ return [
 
         Barryvdh\Snappy\ServiceProvider::class,
         Maatwebsite\Excel\ExcelServiceProvider::class,
+        LaravelFCM\FCMServiceProvider::class,
 
         Laravel\Passport\PassportServiceProvider::class,
         Ixudra\Curl\CurlServiceProvider::class,
@@ -240,6 +241,8 @@ return [
         'SnappyImage' => Barryvdh\Snappy\Facades\SnappyImage::class,
         'Excel' => Maatwebsite\Excel\Facades\Excel::class,
         'Curl'          => Ixudra\Curl\Facades\Curl::class,
+        'FCM'      => LaravelFCM\Facades\FCM::class,
+	'FCMGroup' => LaravelFCM\Facades\FCMGroup::class,
         // 'PDF' => Barryvdh\DomPDF\Facade::class,
 
     ],

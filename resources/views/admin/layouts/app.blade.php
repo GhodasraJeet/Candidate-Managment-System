@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <link rel="shortcut icon" href="{{asset('img/logo.png')}}">
+    <link rel="manifest" href="{{asset('manifest.json')}}">
+
     <meta name="_token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="{{ asset('css/css/all.min.css') }}">
     <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">

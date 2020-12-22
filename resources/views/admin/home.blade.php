@@ -17,6 +17,7 @@
         @endcomponent
     @endif
     <a href="{{route('viewmail')}}" class="btn btn-primary float-right">Send Mail</a>
+    <a href="{{route('noti')}}" class="btn btn-primary float-right mr-3">Send Notifications</a>
       <div class="row mb-2">
         <div class="col-sm-6">
           <h1 class="m-0 text-dark">Dashboard</h1>

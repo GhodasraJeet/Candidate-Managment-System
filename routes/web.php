@@ -19,6 +19,11 @@ Route::get('login','LoginController@index')->name('login');
 Route::post('login','LoginController@submitLogin')->name('submitLogin');
 Route::get('logout','LoginController@logout')->name('logout');
 
+
+// Notifications
+Route::get('/notihome','FireController@index')->name('noti');
+Route::post('/save-token', 'FireController@saveToken')->name('save-token');
+Route::post('/send-notification','FireController@sendNotification')->name('send.notification');
 //  Route for Admin
 
 Route::group(['prefix'=>'admin','middleware'=>'checkadmin'],function(){
@@ -38,7 +43,9 @@ Route::group(['prefix'=>'admin','middleware'=>'checkadmin'],function(){
 
     // For Email
     Route::get('mail','AdminMailController@viewmail')->name('viewmail');
-    Route::post('sendmail','AdminMailController@sendmail')->name('sendmail');
+    Route::post('sendmail','AdminMailController@sendmail')->name('adminsendmail');
+
+
 
 });
 //  Route for HR

@@ -47,7 +47,8 @@ class LoginController extends Controller
                return redirect()->route('admin.home');
            }
            else{
-               return redirect()->route('hr.home');
+            auth()->user()->update(['device_token'=>$request->token]);
+            return redirect()->route('hr.home');
            }
         }
          }

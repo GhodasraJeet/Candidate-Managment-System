@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="_token" content="{{ csrf_token() }}">
+    <link rel="manifest" href="{{asset('manifest.json')}}">
     <link rel="stylesheet" href="{{ asset('css/css/all.min.css') }}">
     <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
     <link rel="stylesheet" href="{{ asset('css/tempusdominus-bootstrap-4.min.css') }}">
@@ -82,13 +83,78 @@
       </aside>
 
       <div class="content-wrapper py-2">
+        <center>
+            <button id="btn-nft-enable" onclick="initFirebaseMessagingRegistration()" class="btn btn-danger btn-flat">Allow for Notification</button>
+            <input type="hidden" name="device_token" id="device_token">
 
+        </center>
         @yield('content')
 
       </div>
 
     </div>
 
+<script src="https://www.gstatic.com/firebasejs/7.16.1/firebase.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.16.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.16.1/firebase-messaging.js"></script>
+<script>
+
+    var firebaseConfig = {
+        apiKey: "AIzaSyAdFTQbVACDmHy5QqaVYZby4iktlKywcFM",
+        authDomain: "fir-notification-216ed.firebaseapp.com",
+        projectId: "fir-notification-216ed",
+        databaseURL: "https://fir-notification-216ed-default-rtdb.firebaseio.com",
+        storageBucket: "fir-notification-216ed.appspot.com",
+        messagingSenderId: "268566207438",
+        appId: "1:268566207438:web:e7b57b412477b95cbaa99f",
+        measurementId: "G-VJBSG41916"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
+    function initFirebaseMessagingRegistration()
+    {
+        messaging
+        .requestPermission()
+        .then(function(){
+            return messaging.getToken()
+        })
+        .then(function(token) {
+            console.log(token);
+            $('#device_token').val(token);
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+                }
+            });
+            $.ajax({
+                url: '{{ route("save-token") }}',
+                type: 'POST',
+                data: {
+                    token: token
+                },
+                dataType: 'JSON',
+                success: function (response) {
+                    alert('Token saved successfully.');
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+            });
+        })
+        .catch(function (err) {
+            console.log('User Chat Token Error'+ err);
+        });
+    }
+
+    messaging.onMessage(function(payload) {
+        const noteTitle = payload.notification.title;
+        const noteOptions = {
+        body: payload.notification.body,
+        icon: payload.notification.icon,
+    };
+    new Notification(noteTitle, noteOptions);
+});
+</script>
 <script src="{{ asset('js/bootstrap.bundle.min.js')}}"></script>
 <script src="{{ asset('js/adminlte.min.js')}}"></script>
 @yield('js')

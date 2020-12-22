@@ -90,6 +90,7 @@
               <p class="text-danger">{{ $errors->first('password') }}</p>
           </span>
       @endif
+      <input type="hidden" name="device_token" id="device_token">
         <div class="row mt-3">
             <button type="submit" class="btn btn-primary btn-block">Sign In</button>
         </div>
@@ -97,10 +98,12 @@
     </div>
   </div>
 </div>
+<script src="https://www.gstatic.com/firebasejs/7.16.1/firebase.js"></script>
 
 <script src="{{ asset('js/jquery.min.js') }}"></script>
 <script src="{{ asset('js/bootstrap.bundle.min.js')}}"></script>
 <script src="{{ asset('js/adminlte.min.js')}}"></script>
-
+<script src="https://www.gstatic.com/firebasejs/7.16.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.16.1/firebase-messaging.js"></script>
 </body>
 </html>
