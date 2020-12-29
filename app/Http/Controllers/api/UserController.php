@@ -69,21 +69,23 @@ class UserController extends Controller
 
     public function logout(Request $request)
     {
-        $user = Auth::user()->token();
-$user->revoke();
-    	// $user=Auth::user();
-        // $user->token()->revoke();
+        $request->user()->token()->revoke();
+        if (Auth::check()) {
+            $user=new User;
+            $user->AauthAcessToken()->delete();
 
         return response()->json([
           'success' => true,
           'message' => 'Logout successfully'
       ]);
-      // }else {
+      }
+      else
+      {
         return response()->json([
-          'success' => false,
-          'message' => 'Unable to Logout'
-        ]);
-      // }
+            'success' => false,
+            'message' => 'Unable to Logout'
+          ]);
+      }
 
     }
 }

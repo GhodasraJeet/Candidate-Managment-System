@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Ixudra\Curl\Facades\Curl;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -27,7 +28,6 @@ class LoginController extends Controller
             'password' => $request->password
         ];
         $curl = curl_init();
-        // Set some options - we are passing in a useragent too here
         curl_setopt_array($curl, [
             CURLOPT_RETURNTRANSFER => 1,
             CURLOPT_URL => 'http://localhost/candidate/public/api/login',
@@ -59,8 +59,16 @@ class LoginController extends Controller
 
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
+        $user=$request->session()->get('email');
+        // $token = "Authorization: Bearer ".$user['token']['token'];
+        // dd($user['token']['token']);
+        // $category = Curl::to('http://localhost/candidate/public/api/logout')
+        // ->withBearer($user['token']['token'])
+        // ->withData()
+        // ->post();
+        // dd($category);
         Session::flush();
         Auth::logout();
         return redirect('/');

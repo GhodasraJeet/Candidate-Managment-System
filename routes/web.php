@@ -75,3 +75,10 @@ Route::post('export', 'FaltuController@export')->name('export');
 
 
 Route::get('downloadExcel/{type}', 'FaltuController@export');
+
+
+Route::get('menu/index','DragController@index');
+Route::post('menu/update-order','DragController@updateOrder');
+
+Route::get('student','DragController@index')->name('student');
+Route::post('student/store','DragController@store')->name('student.store');

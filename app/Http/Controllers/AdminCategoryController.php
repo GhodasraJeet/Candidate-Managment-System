@@ -89,10 +89,10 @@ class AdminCategoryController extends Controller
         $data=[
             'name'=>$request->category
         ];
-        $category = Curl::to('http://localhost/candidate/public/api/category')
-        ->withBearer($user['token']['token'])
-        ->withData($data)
-        ->post();
+            $category = Curl::to('http://localhost/candidate/public/api/category')
+            ->withBearer($user['token']['token'])
+            ->withData($data)
+            ->post();
         return response()->json($category,200);
     }
 

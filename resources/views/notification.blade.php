@@ -7,7 +7,6 @@
     <div class="row justify-content-center">
         <div class="col-md-12">
             <center>
-                <button id="btn-nft-enable" onclick="initFirebaseMessagingRegistration()" class="btn btn-danger btn-flat">Allow for Notification</button>
             </center>
                 <h2 class="my-3">{{ __('Notification') }}</h2>
 
@@ -60,6 +59,7 @@
     };
     firebase.initializeApp(firebaseConfig);
     const messaging = firebase.messaging();
+    initFirebaseMessagingRegistration();
     function initFirebaseMessagingRegistration()
     {
         messaging
@@ -82,7 +82,7 @@
                 },
                 dataType: 'JSON',
                 success: function (response) {
-                    alert('Token saved successfully.');
+                    console.log('Token saved successfully.');
                 },
                 error: function (err) {
                     console.log('User Chat Token Error'+ err);

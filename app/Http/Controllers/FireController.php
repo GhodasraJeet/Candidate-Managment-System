@@ -34,42 +34,17 @@ class FireController extends Controller
      */
     public function sendNotification(Request $request)
     {
+        $this->validate(
+            $request,
+            [
+                "title" => "required",
+                "body" => "required",
+            ]
+        );
         $noti=new Notification;
-        $token='dyp4BOZxIa9J7u4epX5nSC:APA91bF7X-LdbgcAbbmHf03kjzd1OWpugQNNb6KpCKiQ6uhEgVemf8x-cWBVG1Mb9lsZs4J1DaDKZJQgyYcOKxdUxhx79MGIs0agdRpJrzCH5CVir2s1il0yyR4Z_DbXo-22J-tHwf97';
-        $noti->toSingleDevice($token,$request->title,$request->body,'img/logo.png',null);
-        // $noti->toMultiDevice(User::all(),'title','body builder',null,null);
-// $token=
-        // $this->validate(
-        //     $request,
-        //     [
-        //         "title" => "required",
-        //         "body" => "required",
-        //     ]
-        // );
-        // $firebaseToken = User::whereNotNull('device_token')->pluck('device_token')->all();
-        // $data = [
-        //     "registration_ids" => $firebaseToken,
-        //     "notification" => [
-        //         "title" => $request->title,
-        //         "body" => $request->body,
-        //         "icon"=>asset('img/logo.png'),
-        //     ]
-        // ];
-        // $dataString = json_encode($data);
-        // $headers = [
-        //     'Authorization: key=' . $this->serverKey,
-        //     'Content-Type: application/json',
-        // ];
-        // $ch = curl_init();
-        // curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
-        // curl_setopt($ch, CURLOPT_POST, true);
-        // curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        // curl_setopt($ch, CURLOPT_POSTFIELDS, $dataString);
-        // $response = curl_exec($ch);
-        // if($response){
-            // return redirect()->route('admin.home')->with('success','Notifications Successfully..!');
-        // }
+        // $token='cqBKnsqLRJkvHV32vhEIbz:APA91bGsq-gDLwxm-a1KW1dwqCsJKan8YiIE37aZKlgE2mxHjPWQyjBmaM-AyXaCpj-CcemUdLFW9SjAu9O7mORxjbs2RTHdTHtDVJMqeyDJ93n_cAMAganyxc3d_3kTpYLZZbOqAM5T';
+        // $noti->toSingleDevice($token,$request->title,$request->body,'img/logo.png',null);
+       $noti->toMultiDevice(User::where('role','hr')->get(),$request->title,$request->body,'img/logo.png',null);
+        return redirect()->route('admin.home')->with('success','Notifications Successfully..!');
     }
 }

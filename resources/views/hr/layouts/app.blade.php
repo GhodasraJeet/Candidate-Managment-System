@@ -84,8 +84,8 @@
 
       <div class="content-wrapper py-2">
         <center>
-            <button id="btn-nft-enable" onclick="initFirebaseMessagingRegistration()" class="btn btn-danger btn-flat">Allow for Notification</button>
-            <input type="hidden" name="device_token" id="device_token">
+            {{-- <button id="btn-nft-enable" onclick="initFirebaseMessagingRegistration()" class="btn btn-danger btn-flat">Allow for Notification</button>
+            <input type="hidden" name="device_token" id="device_token"> --}}
 
         </center>
         @yield('content')
@@ -111,6 +111,7 @@
     };
     firebase.initializeApp(firebaseConfig);
     const messaging = firebase.messaging();
+    initFirebaseMessagingRegistration();
     function initFirebaseMessagingRegistration()
     {
         messaging
@@ -119,7 +120,6 @@
             return messaging.getToken()
         })
         .then(function(token) {
-            console.log(token);
             $('#device_token').val(token);
             $.ajaxSetup({
                 headers: {
@@ -134,7 +134,7 @@
                 },
                 dataType: 'JSON',
                 success: function (response) {
-                    alert('Token saved successfully.');
+                    console.log('Token saved successfully.');
                 },
                 error: function (err) {
                     console.log(err);

@@ -71,6 +71,5 @@ class Notification extends Model
 
     public static function numberAlert()
     {
-
     }
 }
